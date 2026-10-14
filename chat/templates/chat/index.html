@@ -1,0 +1,37 @@
+ {% extends 'chat/base.html' %}
+{% block content %}
+<div class="app container-fluid p-0">
+  <header class="app-header d-flex align-items-center justify-content-between">
+    <span class="badge-title">🎓 AI ASSISTANT</span>
+    <button id="installBtn" class="btn btn-sm btn-outline-dark d-none">Install</button>
+  </header>
+  <div class="subtitle">CLASS ASSISTANT · Lesson helper</div>
+
+  <div id="offlineBanner" class="alert alert-warning m-2 py-2 d-none" role="alert">
+    ⚠️ You're offline. Check your internet connection to ask the assistant.
+  </div>
+
+  <main id="chat" class="chat-area">
+    <div class="msg bot">
+      <div class="meta">CLASS ASSISTANT</div>
+      <div class="bubble">Hi! Ready to explore today's lesson? Ask me any question about your worksheet.</div>
+    </div>
+  </main>
+
+  <div class="chips">
+    <button class="chip">Explain in simple terms</button>
+    <button class="chip">Give me an example</button>
+    <button class="chip">Check my answer</button>
+  </div>
+
+  <form id="chatForm" class="composer">
+    {% csrf_token %}
+    <textarea id="prompt" class="form-control" rows="2" placeholder="Ask a question for class…" required></textarea>
+    <div class="d-flex justify-content-between mt-2">
+      <button type="button" id="clearBtn" class="btn btn-outline-dark btn-sm">✕ Clear</button>
+      <button type="submit" id="sendBtn" class="btn btn-dark btn-sm">▶ Send</button>
+    </div>
+  </form>
+  <footer class="foot">Safe Student Mode · Offline PWA</footer>
+</div>
+{% endblock %}
