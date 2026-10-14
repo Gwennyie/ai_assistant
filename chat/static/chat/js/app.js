@@ -5,20 +5,35 @@ const sendBtn = document.getElementById('sendBtn');
 const banner = document.getElementById('offlineBanner');
 const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
+function timeNow() {
+  return new Date().toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+}
+
 function addMsg(text, who, label) {
   const div = document.createElement('div');
   div.className = 'msg ' + who;
   const meta = document.createElement('div');
   meta.className = 'meta';
-  meta.textContent = label || (who === 'user' ? 'YOU (STUDENT)' : 'CLASS ASSISTANT');
+  const name = label || (who === 'user' ? 'YOU (STUDENT)' : 'CLASS ASSISTANT');
+  meta.textContent = name + ' · ' + timeNow();
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.textContent = text;
+
+  const isBotReply = who === 'bot' && text !== 'Thinking…';
+  if (isBotReply && window.marked && window.DOMPurify) {
+    bubble.innerHTML = DOMPurify.sanitize(marked.parse(text));
+    bubble.classList.add('markdown');
+  } else {
+    bubble.textContent = text;
+  }
+
   div.append(meta, bubble);
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
   return div;
 }
+
+document.querySelector('.msg .meta').textContent += ' · ' + timeNow();
 
 // ---- Offline detection ----
 function updateOnline() {
@@ -29,6 +44,15 @@ function updateOnline() {
 window.addEventListener('online', updateOnline);
 window.addEventListener('offline', updateOnline);
 updateOnline();
+
+
+ // ---- Enter to send, Shift + Enter for a new line ----
+promptEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
 
 // ---- Send prompt to Django backend ----
 form.addEventListener('submit', async (e) => {

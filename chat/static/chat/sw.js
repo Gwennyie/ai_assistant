@@ -1,4 +1,4 @@
-const CACHE = 'ai-assistant-v1';
+const CACHE = 'ai-assistant-v2';
 const ASSETS = [
   '/',
   '/offline/',
@@ -7,6 +7,8 @@ const ASSETS = [
   '/static/chat/icons/icon-192.png',
   '/static/chat/icons/icon-512.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+  'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js',
+  'https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js',
 ];
 
 self.addEventListener('install', (e) => {

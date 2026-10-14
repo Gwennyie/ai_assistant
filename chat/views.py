@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 
 from django.conf import settings
@@ -36,16 +37,33 @@ def ask(request):
     if not settings.GEMINI_API_KEY:
         return JsonResponse({'error': 'Server API key is not configured.'}, status=500)
 
-    try:
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        response = client.models.generate_content(
-            model=settings.GEMINI_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
-        )
-        return JsonResponse({'reply': response.text or 'No response generated.'})
-    except Exception as exc:  # quota, network, etc.
-        return JsonResponse({'error': f'Gemini request failed: {exc}'}, status=502)
+    models = [settings.GEMINI_MODEL, settings.GEMINI_FALLBACK_MODEL]
+    last_error = None
+
+    for model in models:
+        if not model:
+            continue
+        for attempt in range(3):
+            try:
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+                )
+                return JsonResponse({'reply': response.text or 'No response generated.'})
+            except Exception as exc:
+                last_error = exc
+                if '503' in str(exc) or '429' in str(exc):
+                    time.sleep(2 ** attempt)  # wait 1s, 2s, 4s, then retry
+                    continue
+                break  # other errors (bad key, 404): don't retry this model
+
+    print('Gemini error:', last_error)
+    return JsonResponse(
+        {'error': 'The AI service is busy right now. Please try again in a moment.'},
+        status=502,
+    )
 
 
 def manifest(request):
